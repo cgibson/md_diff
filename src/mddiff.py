@@ -36,15 +36,14 @@ class Application (object):
         parser.add_argument('--diff', dest='diff', help='set the input diff path.')
         parser.add_argument('--stdin', dest='stdin', help='set the input diff path.')
         parser.add_argument('--repo', dest='repo', help='set the path of the repository (use with --sha)')
-        parser.add_argument('--sha', dest='sha', help='set the change sha (use with --repo)')
-        parser.add_argument('--branch', dest='branch', help='get the whole diff of a branch (use with --repo)')
+        parser.add_argument('--ref', dest='sha', help='set the ref (branch, sha, etc) to diff against (use with --repo)')
         parser.add_argument('--word-diff', dest='word_diff', help='whether or not the diff is a word-level or line-level diff', action='store_true')
         args = parser.parse_args();
 
         # Three different ways to get patch data
         #   1. File (via --diff)
         #   2. Standard input (--stdin)
-        #   3. Via a repository (using a sha or a branch)
+        #   3. Via a repository (using a ref)
         #
         # None of these may overlap
 
@@ -62,14 +61,10 @@ class Application (object):
         elif args.stdin:
             diff = self.diff_from_stdin()
         elif args.repo:
-            if args.sha:
-                if args.branch:
-                    raise ArgumentException("Choose a sha or a branch, not both")
-                diff = self.diff_from_sha(args.repo, args.sha, args.word_diff)
-            elif args.branch:
-                diff = self.diff_from_branch(args.repo, args.branch, args.word_diff)
+            if args.ref:
+                diff = self.diff_from_ref(args.repo, args.ref, args.word_diff)
             else:
-                raise ArgumentException("Must use --sha or --branch with --repo")
+                raise ArgumentException("Must use --ref with --repo")
 
         if args.outfile:
             out_file = args.outfile
@@ -83,21 +78,9 @@ class Application (object):
         raise NotImplementedError()
 
 
-    def diff_from_sha(self, working_tree_dir, sha, word_diff=False):
+    def diff_from_ref(self, working_tree_dir, ref, word_diff=False):
         with temp_chdir(working_tree_dir):
-            args = ['git', 'show', sha, '--unified=2000']
-            if word_diff:
-                args.append('--word-diff')
-            p = Popen(args, stdout=PIPE, stderr=STDOUT)
-            output, err = p.communicate()
-            if err:
-                raise Exception("Failed git call: %s" % str(err))
-            return output.split("\n")
-
-
-    def diff_from_branch(self, working_tree_dir, branch, word_diff=False):
-        with temp_chdir(working_tree_dir):
-            args = ['git', 'diff', '%s' % branch, '--unified=2000']
+            args = ['git', 'diff', '%s' % ref, '--unified=2000']
             if word_diff:
                 args.append('--word-diff')
             p = Popen(args, stdout=PIPE, stderr=STDOUT)

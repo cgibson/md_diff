@@ -36,7 +36,7 @@ class Application (object):
         parser.add_argument('--diff', dest='diff', help='set the input diff path.')
         parser.add_argument('--stdin', dest='stdin', help='set the input diff path.')
         parser.add_argument('--repo', dest='repo', help='set the path of the repository (use with --sha)')
-        parser.add_argument('--ref', dest='sha', help='set the ref (branch, sha, etc) to diff against (use with --repo)')
+        parser.add_argument('--ref', dest='ref', help='set the ref (branch, sha, etc) to diff against (use with --repo)')
         parser.add_argument('--word-diff', dest='word_diff', help='whether or not the diff is a word-level or line-level diff', action='store_true')
         args = parser.parse_args();
 
